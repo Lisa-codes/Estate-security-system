@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        body { 
+            display: flex;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: #343a40;
+            color: white;
+            position: fixed;
+            padding-top: 20px;
+            transition: all 0.3s;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar a {
+            padding: 15px;
+            text-decoration: none;
+            color: white;
+            display: block;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar a:hover, .sidebar a:active { 
+            background: #495057;
+        }
+
+        /* Main content */
+        .content { 
+            margin-left: 260px; 
+            padding: 20px; 
+            width: 100%;  
+            font-family: Arial, sans-serif;
+        }
+
+        /* Ensure table font matches */
+        table, th, td {
+            font-family: Arial, sans-serif !important;
+        }
+
+        /* Sidebar Toggle Button */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: #343a40;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+            .content {
+                margin-left: 0;
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <h4 class="text-center">Admin Panel</h4>
+        <a href="{{ url_for('admin_panel') }}" class="d-flex align-items-center">
+            <i class="fas fa-history"></i> Incident History
+        </a>
+        <a href="{{ url_for('admin_analytics') }}" class="d-flex align-items-center">
+            <i class="fas fa-chart-bar"></i> Analytics Reports
+        </a>
+        <a href="{{ url_for('delete_accounts') }}" class="d-flex align-items-center">
+            <i class="fas fa-trash"></i> Delete Accounts
+        </a>
+        <a href="{{ url_for('logout') }}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <h2 class="mb-4">Incident Reports</h2>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Incident Category</th>
+                        <th>Description</th>
+                        <th>Location</th>
+                        <th>Resident Name</th>
+                        <th>Guard Name</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr {% if report.status == 'Pending' %} style="background-color: #ffcccc;"{% endif %}>
+                        <td>{{ report.id }}</td>
+                        <td>{{ report.incident_category }}</td>
+                        <td>{{ report.description }}</td>
+                        <td>{{ report.location }}</td>
+                        <td>{{ report.resident_name }}</td>
+                        <td>{{ report.guard_name }}</td>
+                        <td>{{ report.date_time }}</td>
+                        <td>{{ report.status }}</td>
+                        <td>
+                            {% if report.status == "Pending" %} 
+                            <form action="{{ url_for('mark_as_handled', report_id=report.id) }}" method="POST">
+                                <button type="submit" class="btn btn-primary btn-sm">Mark as Handled</button>
+                            </form>
+                            {% else %}
+                            ✅ 
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            var sidebar = document.getElementById("sidebar");
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+            } else {
+                sidebar.style.width = "250px";
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

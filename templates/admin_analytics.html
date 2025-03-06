@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wakigwe Security Analytics Reports</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body { 
+            display: flex;
+            overflow-x: hidden; /* Prevents side scrolling */
+            font-family: Arial, sans-serif;
+        }
+
+        .wrapper {
+            display: flex;
+            width: 100%;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: #343a40;
+            color: white;
+            position: fixed;
+            padding-top: 20px;
+        }
+
+        .sidebar a {
+            padding: 15px;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .sidebar a:hover { 
+            background: #495057; 
+        }
+        .sidebar a:active{
+            background: #495057;
+        }
+
+        .content {
+            flex-grow: 1;
+            margin-left: 250px;
+            padding: 20px;
+            width: 100%;
+            min-width: 0; /* Ensures it doesn't expand uncontrollably */
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+         /* Sidebar Toggle Button */
+         .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: #343a40;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+            .content {
+                margin-left: 0;
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar">
+            <h4 class="text-center">Admin Panel</h4>
+            <a href="{{ url_for('admin_panel') }}"><i class="fas fa-history"></i> Incident History</a>
+            <a href="{{ url_for('admin_analytics') }}"><i class="fas fa-chart-bar"></i> Analytics Reports</a>
+            <a href="{{ url_for('delete_accounts')}}"><i class="fas fa-trash"></i> Delete Accounts</a>
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+
+        <div class="content">
+            <h2 class="mb-4">Wakigwe Amani's Incident Analytics</h2>
+
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow chart-container">
+                            <h5 class="text-center">Incident Frequency</h5>
+                            <canvas id="incidentChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow chart-container">
+                            <h5 class="text-center">Most Active Guards</h5>
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow chart-container">
+                            <h5 class="text-center">Incidents by Location</h5>
+                            <canvas id="locationChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow">
+                            <h5 class="text-center">General Summary</h5>
+                            <ul id="summaryList" class="list-group">
+                                <!-- Summary data will be added dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var incidentCategories = JSON.parse('{{ incident_categories | tojson | safe }}');
+        var incidentCounts = JSON.parse('{{ incident_counts | tojson | safe }}');
+
+        var guardNames = JSON.parse('{{ guard_names | tojson | safe }}');
+        var guardActivityCounts = JSON.parse('{{ guard_activity_counts | tojson | safe }}');
+
+        var locations = JSON.parse('{{ locations | tojson | safe }}');
+        var locationCounts = JSON.parse('{{ location_counts | tojson | safe }}');
+
+        var summaryData = JSON.parse('{{ summary | tojson | safe }}');
+
+        new Chart(document.getElementById('incidentChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: incidentCategories,
+                datasets: [{
+                    label: 'Number of Incidents',
+                    data: incidentCounts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('activityChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: guardNames,
+                datasets: [{
+                    label: 'Reports Filed',
+                    data: guardActivityCounts,
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('locationChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: locations,
+                datasets: [{
+                    label: 'Reports by Location',
+                    data: locationCounts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            }
+        });
+
+        var summaryList = document.getElementById('summaryList');
+        summaryData.forEach(item => {
+            var li = document.createElement('li');
+            li.className = "list-group-item";
+            li.textContent = item;
+            summaryList.appendChild(li);
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
